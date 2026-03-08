@@ -1,22 +1,7 @@
-# Maven
-target/
-.mvn/wrapper/maven-wrapper.jar
-
-# Node
 node_modules/
 Landmarket-frontend/node_modules/
-
-# Environment
+target/
+Landmarket-backend/target/
 .env
-
-# IDE
-.idea/
 .vscode/
-*.iml
-.classpath
-.project
-.settings/
-
-# OS
-.DS_Store
-Thumbs.db
+.idea/
