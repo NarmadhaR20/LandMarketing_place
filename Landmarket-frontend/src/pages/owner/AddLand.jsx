@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     MapPin,
     Maximize,
@@ -69,6 +69,14 @@ const AddLand = () => {
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
+    const handleAddressUpdate = (city, fullAddress) => {
+        setFormData(prev => ({
+            ...prev,
+            location: city || prev.location,
+            address: fullAddress || prev.address
+        }));
+    };
+
     const handleLocationSelect = (lat, lng) => {
         setFormData(prev => ({
             ...prev,
@@ -76,6 +84,31 @@ const AddLand = () => {
             longitude: lng
         }));
     };
+
+    // Forward Geocoding: Search map when location or address changes
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            const searchQuery = `${formData.address} ${formData.location}`.trim();
+            if (searchQuery.length > 5) {
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&limit=1`);
+                    const data = await res.json();
+                    if (data && data.length > 0) {
+                        const { lat, lon } = data[0];
+                        setFormData(prev => ({
+                            ...prev,
+                            latitude: parseFloat(lat),
+                            longitude: parseFloat(lon)
+                        }));
+                    }
+                } catch (error) {
+                    console.error('Forward geocoding error:', error);
+                }
+            }
+        }, 1500); // 1.5s debounce
+
+        return () => clearTimeout(timer);
+    }, [formData.location, formData.address]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -380,6 +413,7 @@ const AddLand = () => {
                     <div className="h-[400px] w-full">
                         <MapPicker
                             onLocationSelect={handleLocationSelect}
+                            onAddressUpdate={handleAddressUpdate}
                             initialPosition={[formData.latitude, formData.longitude]}
                         />
                     </div>
